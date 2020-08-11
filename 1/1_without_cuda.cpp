@@ -5,25 +5,30 @@
 #include <iterator>
 using namespace std;
 
+// not a parallel reduction
+
 void minimum(int *array, int *tid, int *size, int *result)
 {
   int first = *tid * 2;
   int second = first + 1;
-  
+
   /* for odd test, the last number gets missed
     out, so extra comparison */
   if (second == *size - 2)
-    if (*result > array[second + 1]){
+    if (*result > array[second + 1])
+    {
       *result = array[second + 1];
       return;
     }
 
-
   // Check pair, compare small with prev small (arr[0])
-  if (array[first] > array[second]){
+  if (array[first] > array[second])
+  {
     if (array[second] < *result)
       *result = array[second];
-  }else{
+  }
+  else
+  {
     if (array[first] < *result)
       *result = array[first];
   }
@@ -33,20 +38,24 @@ void maximum(int *array, int *tid, int *size, int *result)
 {
   int first = *tid * 2;
   int second = first + 1;
-  
+
   /* for odd test, the last number gets missed
     out, so extra comparison */
   if (second == *size - 2)
-    if (*result < array[second + 1]){
+    if (*result < array[second + 1])
+    {
       *result = array[second + 1];
       return;
     }
 
   // Check pair, compare big with prev big (arr[0])
-  if (array[first] < array[second]){
+  if (array[first] < array[second])
+  {
     if (array[second] > *result)
       *result = array[second];
-  }else{
+  }
+  else
+  {
     if (array[first] > *result)
       *result = array[first];
   }
@@ -56,13 +65,15 @@ void summation(int *array, int *tid, int *size, int *result)
 {
   int first = *tid * 2;
   int second = first + 1;
-  
-  if(*tid == 0){
+
+  if (*tid == 0)
+  {
     *result += array[first] + array[second];
     return;
   }
 
-  if (second == *size - 2){
+  if (second == *size - 2)
+  {
     *result += array[second + 1];
     return;
   }
@@ -75,7 +86,8 @@ void average(int *array, int *tid, int *size, double *result)
   int first = *tid * 2;
   int second = first + 1;
 
-  if (second == *size - 2){
+  if (second == *size - 2)
+  {
     *result = (*result + array[second + 1]) / 2;
     return;
   }
@@ -88,13 +100,15 @@ void standardDeviation(int *array, int *tid, int *size, float *xBar, double *res
   int first = *tid * 2;
   int second = first + 1;
 
-  if(*tid == 0){
+  if (*tid == 0)
+  {
     *result = pow(array[first] - *xBar, 2) + pow(array[second] - *xBar, 2);
     return;
   }
 
-  if (second == *size - 2){
-    *result +=  pow(array[second + 1] - *xBar, 2);
+  if (second == *size - 2)
+  {
+    *result += pow(array[second + 1] - *xBar, 2);
     return;
   }
 
@@ -148,7 +162,7 @@ int main()
   //*************** Maximum operation ********************/
   int maxResult = 0;
 
-  for (int i = 0; i < n/2 ; i++)
+  for (int i = 0; i < n / 2; i++)
   {
     maximum(arrPointer, &i, &n, &maxResult);
   }
@@ -180,7 +194,7 @@ int main()
 
   //*************** Summation operation ********************/
   double result = 0;
-  float xBar = (float) sumCPU / n;
+  float xBar = (float)sumCPU / n;
 
   for (int i = 0; i < n / 2; i++)
   {
@@ -188,8 +202,6 @@ int main()
   }
 
   printf("\nThe standard deviation of the array GPU :: %lf\n", sqrt(result / n));
-
-
 
   clock_t end = clock();
   printf("\n\nThe time taken :: %lf s \n", (double)(end - start) / CLOCKS_PER_SEC);

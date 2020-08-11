@@ -1,196 +1,233 @@
 %%cu
+#include <iostream>
+#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cuda_runtime.h>
 
-        
-#include<iostream>
-#include<cstdio>
-#include<cstdlib>
-#include<cuda_runtime.h>
 using namespace std;
 
-
-__global__ void minimum(int *input)
+//# minimum from an array
+__global__ void minimum(int *array)
 {
-	int tid=threadIdx.x;
-	auto step_size=1;
-  int number_of_threads=blockDim.x;
-  
-  while(number_of_threads>0)
+  int tid = threadIdx.x;
+  int step = 1;
+  int noOfThreads = blockDim.x;
+
+  while (noOfThreads > 0)
   {
-      if(tid<number_of_threads)
-      {
-          int first=tid*step_size*2;
-          int second=first+step_size;
-          if(input[second]<input[first])
-            input[first]=input[second];
-      }
-      step_size=step_size*2;
-      number_of_threads/=2;
+    if (tid < noOfThreads)
+    {
+      int first = tid * step * 2;
+      int second = first + step;
+
+      if (array[first] > array[second])
+        array[first] = array[second];
+    }
+
+    step *= 2;
+    noOfThreads /= 2;
+  }
+}
+
+//# maximum from an array
+__global__ void maximum(int *array)
+{
+  int tid = threadIdx.x;
+  int step = 1;
+  int noOfThreads = blockDim.x;
+
+  while (noOfThreads > 0)
+  {
+    if (tid < noOfThreads)
+    {
+      int first = tid * step * 2;
+      int second = first + step;
+
+      if (array[first] < array[second])
+        array[first] = array[second];
+    }
+
+    step *= 2;
+    noOfThreads /= 2;
+  }
+}
+
+//# summation of the array
+__global__ void summation(int *array)
+{
+  int tid = threadIdx.x;
+  int step = 1;
+  int noOfThreads = blockDim.x;
+
+  while (noOfThreads > 0)
+  {
+    if (tid < noOfThreads)
+    {
+      int first = tid * step * 2;
+      int second = first + step;
+
+      array[first] += array[second];
+    }
+
+    step *= 2;
+    noOfThreads /= 2;
+  }
+}
+
+//# average of the array
+__global__ void average(int *array)
+{
+  int tid = threadIdx.x;
+  int step = 1;
+  int noOfThreads = blockDim.x;
+  int totalElements = noOfThreads * 2;
+
+  while (noOfThreads > 0)
+  {
+    if (tid < noOfThreads)
+    {
+      int first = tid * step * 2;
+      int second = first + step;
+
+      array[first] += array[second];
+    }
+
+    step *= 2;
+    noOfThreads /= 2;
   }
 
+  array[0] = array[0] / totalElements;
 }
 
-__global__ void max(int *input)
+__global__ void standardDeviation(int *array, int xBar)
 {
-   int tid=threadIdx.x;
-   auto step_size=1;
-   int number_of_threads=blockDim.x;
-   
-   while(number_of_threads>0)
-   {
-       if(tid<number_of_threads)
-       {
-           int first=tid*step_size*2;
-           int second=first+step_size;
-           if(input[second]>input[first])
-            input[first]=input[second];
-       }
-       step_size*=2;
-       number_of_threads/=2;
-   }
-}
-
-__global__ void sum(int *input)
-{
-    const int tid=threadIdx.x;
-    auto  step_size=1;
-    int number_of_threads=blockDim.x;
-    while(number_of_threads>0)
+  int tid = threadIdx.x;
+  int step = 1;
+  int noOfThreads = blockDim.x;
+  while (noOfThreads > 0)
+  {
+    if (tid < noOfThreads)
     {
-        if(tid<number_of_threads)
-        {
-            const int first=tid*step_size*2;
-            const int second=first+step_size;
-            input[first]=input[first]+input[second];
-        }
-    step_size = step_size*2;; 
-		number_of_threads =number_of_threads/2;
+      int first = tid * step * 2;
+      int second = first + step;
+      array[first] = pow(array[second] - xBar, 2);
     }
-}
-
-__global__ void average(int *input) 
-{
-    const int tid=threadIdx.x;
-    auto  step_size=1;
-    int number_of_threads=blockDim.x;
-    int totalElements=number_of_threads*2;
-    while(number_of_threads>0)
-    {
-        if(tid<number_of_threads)
-        {
-            const int first=tid*step_size*2;
-            const int second=first+step_size;
-            input[first]=input[first]+input[second];
-        }
-        step_size = step_size*2;; 
-		number_of_threads =number_of_threads/2;
-    }
-    input[0]=input[0]/totalElements;
-}
-
-__global__ void standardDeviation(int *input, int xBar)
-{
-    const int tid=threadIdx.x;
-    auto  step_size=1;
-    int number_of_threads=blockDim.x;
-    while(number_of_threads>0)
-    {
-        if(tid<number_of_threads)
-        {
-            const int first=tid*step_size*2;
-            const int second=first+step_size;
-            input[first] = pow(input[second] - xBar, 2);
-        }
-    step_size = step_size*2;; 
-		number_of_threads =number_of_threads/2;
-    }
+    step *= 2;
+    noOfThreads /= 2;
+  }
 }
 
 int main()
 {
 
-	int n;
-	n=10;
-  srand(n);
-	int *arr=new int[n];
-  int min=20000;
-   //# Generate Input array using rand()
-	for(int i=0;i<n;i++)
-	{
-		arr[i]=rand()%20000;
-      if(arr[i]<min)
-        min=arr[i];
-    cout<<arr[i]<<" ";
-	}
+  int n = 12;
+  int RANG = 100;
+  int minCPU = 1001;
+  int maxCPU = 0;
+  int sumCPU = 0;
 
-	int size=n*sizeof(int); //calculate no. of bytes for array
-	int *arr_d,result1;
-	
-  //# Allocate memory for min Operation
-	cudaMalloc(&arr_d,size);
-	cudaMemcpy(arr_d,arr,size,cudaMemcpyHostToDevice);
+  int array[n];
 
-  minimum<<<1,n/2>>>(arr_d);
+  for (int i = 0; i < n; i++)
+  {
+    int r = rand() % RANG;
+    if (r == 0)
+      r = rand() % RANG;
 
-	cudaMemcpy(&result1,arr_d,sizeof(int),cudaMemcpyDeviceToHost);
+    array[i] = r;
 
-	cout<<"\nThe minimum element is : "<<result1<<endl;
- 
-   
-  //#MAX OPERATION 
-  int *arr_max,maxValue;
-  cudaMalloc(&arr_max,size);
-	cudaMemcpy(arr_max,arr,size,cudaMemcpyHostToDevice);
+    if (array[i] > maxCPU)
+      maxCPU = array[i];
 
-  max<<<1,n/2>>>(arr_max);
+    if (array[i] < minCPU)
+      minCPU = array[i];
 
-	cudaMemcpy(&maxValue,arr_max,sizeof(int),cudaMemcpyDeviceToHost);
+    sumCPU += array[i];
 
-	cout<<"\nThe maximum element is : "<<maxValue<<endl;
-    
-  //#SUM OPERATION 
-  int *arr_sum,sumValue;
-  cudaMalloc(&arr_sum,size);
-	cudaMemcpy(arr_sum,arr,size,cudaMemcpyHostToDevice);
+    printf("%d ", array[i]);
+  }
 
-  sum<<<1,n/2>>>(arr_sum);
+  clock_t start = clock();
 
-	cudaMemcpy(&sumValue,arr_sum,sizeof(int),cudaMemcpyDeviceToHost);
+  //#*************** Summation operation ********************/
+  int sumResult;
+  int *arrSum;
 
-	cout<<"\nThe sum of elements is : "<<sumValue<<endl; 
+  cudaMalloc(&arrSum, sizeof(int) * n);
+  cudaMemcpy(arrSum, array, sizeof(int) * n, cudaMemcpyHostToDevice);
 
-   
-  //#AVG OPERATION 
-  int *arr_avg,avgValue;
-  cudaMalloc(&arr_avg,size);
-	cudaMemcpy(arr_avg,arr,size,cudaMemcpyHostToDevice);
+  summation<<<1, n / 2>>>(arrSum);
 
-  average<<<1,n/2>>>(arr_avg);
+  cudaMemcpy(&sumResult, arrSum, sizeof(int), cudaMemcpyDeviceToHost);
 
-	cudaMemcpy(&avgValue,arr_avg,sizeof(int),cudaMemcpyDeviceToHost);
+  printf("\n\nThe summation of the array CPU :: %d", sumCPU);
+  printf("\nThe summation of the array GPU :: %d \n", sumResult);
 
-	cout<<"\nThe average of elements is : "<<avgValue<<endl; 
-  
-  //#SUM OPERATION 
-  int *arr_sd,sdVal;
-  int xBar;
-  xBar = avgValue;
- 
-  cudaMalloc(&arr_sd,size);
-	cudaMemcpy(arr_sd,arr,size,cudaMemcpyHostToDevice);
+  //#*************** Minimum operation ********************/
+  int minResult;
+  int *arrMin;
 
-  standardDeviation<<<1,n/2>>>(arr_sd, xBar);
+  cudaMalloc(&arrMin, sizeof(int) * n);
+  cudaMemcpy(arrMin, array, sizeof(int) * n, cudaMemcpyHostToDevice);
 
-	cudaMemcpy(&sdVal,arr_sd,sizeof(int),cudaMemcpyDeviceToHost);
+  minimum<<<1, n / 2>>>(arrMin);
 
-	cout<<"\nThe standard deviation of elements is : "<<sqrt(sdVal/n)<<endl; 
-   
-  //# Free all allcated device memeory
-   cudaFree(arr_d);
-   cudaFree(arr_sum);
-   cudaFree(arr_sd);
-   cudaFree(arr_max);
-   cudaFree(arr_avg);
-    
-return 0;
+  cudaMemcpy(&minResult, arrMin, sizeof(int), cudaMemcpyDeviceToHost);
 
+  printf("\n\nThe minimum of the array CPU :: %d", minCPU);
+  printf("\nThe minimum of the array GPU :: %d \n", minResult);
+
+  //#*************** Maximum operation ********************/
+  int maxResult;
+  int *arrMax;
+
+  cudaMalloc(&arrMax, sizeof(int) * n);
+  cudaMemcpy(arrMax, array, sizeof(int) * n, cudaMemcpyHostToDevice);
+
+  maximum<<<1, n / 2>>>(arrMax);
+
+  cudaMemcpy(&maxResult, arrMax, sizeof(int), cudaMemcpyDeviceToHost);
+
+  printf("\n\nThe maximum of the array CPU :: %d", maxCPU);
+  printf("\nThe maximum of the array GPU :: %d \n", maxResult);
+
+  //#*************** Average operation ********************/
+  int avgResult;
+  int *arrAvg;
+
+  cudaMalloc(&arrAvg, sizeof(int) * n);
+  cudaMemcpy(arrAvg, array, sizeof(int) * n, cudaMemcpyHostToDevice);
+
+  average<<<1, n / 2>>>(arrAvg);
+
+  cudaMemcpy(&avgResult, arrAvg, sizeof(int), cudaMemcpyDeviceToHost);
+
+  printf("\n\nThe average of the array CPU :: %d", sumCPU / n);
+  printf("\nThe average of the array GPU :: %d \n", avgResult);
+
+  //#*************** Standard Deviation operation ********************/
+  int sdResult;
+  int xBar = avgResult;
+  int *arrSd;
+
+  cudaMalloc(&arrSd, sizeof(int) * n);
+  cudaMemcpy(arrSd, array, sizeof(int) * n, cudaMemcpyHostToDevice);
+
+  standardDeviation<<<1, n / 2>>>(arrSd, xBar);
+
+  cudaMemcpy(&sdResult, arrSd, sizeof(int), cudaMemcpyDeviceToHost);
+
+  printf("\nThe standard deviation of the array GPU :: %lf \n", sqrt(sdResult / n));
+
+  clock_t end = clock();
+  printf("\n\nThe time taken :: %lf s \n", (double)(end - start) / CLOCKS_PER_SEC);
+
+  cudaFree(arrSum);
+  cudaFree(arrMin);
+  cudaFree(arrMax);
+  cudaFree(arrAvg);
+  cudaFree(arrSd);
+
+  return 0;
 }
