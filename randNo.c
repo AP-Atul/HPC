@@ -2,10 +2,14 @@
 #include<stdlib.h>
 
 int main(){
-    printf("1000 \n");
-    for (int i = 0; i < 1000; i++)
-    {
-        int n = rand() % 100;
-        printf("%d ", n);
+    int n;
+    int RANG = 1000;
+    n = 1000;
+    printf("%d\n", n);
+    
+    for(int i = 0; i < n; i++){
+        int r = rand() % RANG;
+        printf("%d ", r);
     }
+
 }
