@@ -1,4 +1,5 @@
-#include<stdio.h>
+#include<bits/stdc++.h>
+using namespace std;
 
 void swap(int *a, int *b){
     int t = *a;
@@ -34,13 +35,12 @@ int main()
     for(int i = 0; i < arr_size; i++){
         scanf("%d", &arr[i]);
     }
-
-    printf("Given array is \n");
-    printArray(arr, arr_size);
-
+    
+	clock_t start = clock();
     bubbleSort(arr, arr_size);
+  	clock_t end = clock();
 
-    printf("\nSorted array is \n");
     printArray(arr, arr_size);
+    printf("\nTime taken (serial) :: %lf s \n", (double) (end - start) / CLOCKS_PER_SEC);
     return 0;
 }
