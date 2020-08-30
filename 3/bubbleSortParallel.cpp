@@ -1,5 +1,7 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
+#include <omp.h>
 using namespace std;
+int num_threads = 10;
 
 void bubbleSort(int arr[], int n){
     if(n == 1)
