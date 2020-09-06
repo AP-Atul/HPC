@@ -1,86 +1,93 @@
 #include <bits/stdc++.h>
-#include <omp.h>
 #include <time.h>
+#include <omp.h>
 
-void merge(int a[],int i1,int j1,int i2,int j2)
-{
-    int temp[10000];   
-    int i,j,k;
-    i=i1;   
-    j=i2;   
-    k=0;
-    
-    while(i<=j1 && j<=j2)    
-    {
-        if(a[i]<a[j])
-            temp[k++]=a[i++];
-        else
-            temp[k++]=a[j++];
-    }
-    
-    while(i<=j1)   
-        temp[k++]=a[i++];
-        
-    while(j<=j2)    
-        temp[k++]=a[j++];
-        
-   
-    for(i=i1,j=0;i<=j2;i++,j++)
-        a[i]=temp[j];
-}
+using namespace std;
 
-
-void mergeSortParallel(int a[],int i,int j)
-{
-    int mid;
-        
-    if(i<j)
-    {
-        mid=(i+j)/2;
-        
-        #pragma omp parallel sections num_threads(2)
-        {
-        	#pragma omp section
-        	{
-		        mergeSortParallel(a,i,mid); 
-        	}
-        	
-        	#pragma omp section
-        	{
-        		
-			mergeSortParallel(a,mid+1,j);
-			}
-        }
-
-		#pragma omp taskwait
-        merge(a,i,mid,mid+1,j);
-    }
-}
-
-void printArray(int A[], int size)
-{
-    int i;
-    for (i = 0; i < size; i++)
-        printf("%d \n", A[i]);
-}
-
-int main()
-{
-    int arr_size;
-
-    scanf("%d", &arr_size);
-    int arr[arr_size], tmp[arr_size];
-
-    for(int i = 0; i < arr_size; i++){
-        scanf("%d", &arr[i]);
-    }
-
-	/******** PARALLEL  OPERATION *************/
-	clock_t start = clock();
-    mergeSortParallel(arr, 0, arr_size - 1);
-   	clock_t end = clock();
-	printf("Time taken (parallel) :: %lf s\n", (double) (end - start) / CLOCKS_PER_SEC);
+// merge the two halves
+vector<long> merge(vector<long> & left, vector<long> & right){
+	vector<long> result;
+	unsigned left_it = 0, right_it = 0;
 	
-	printArray(arr, arr_size);
-    return 0;
+	while(left_it < left.size() && right_it < right.size()){
+		if(left[left_it] < right[right_it]){
+			result.push_back(left[left_it]);
+			left_it++;
+		}
+		else{
+			result.push_back(right[right_it]);
+			right_it++;
+		}
+	}
+	
+	while(left_it < left.size()){
+		result.push_back(left[left_it]);
+		left_it++;
+	}
+	
+	while(right_it < right.size()){
+		result.push_back(right[right_it]);
+		right_it++;
+	}
+	
+	return result;
+}
+
+// recursive merge sort
+vector<long> mergeSort(vector<long> & vec, int threads){
+	if(vec.size() == 1){
+		return vec;
+	}
+
+	// device the vector in left and right
+	vector<long>::iterator middle = vec.begin() + (vec.size() / 2);
+	vector<long> left (vec.begin(), middle);
+	vector<long> right (middle, vec.end());
+	
+	// if threads are greater than one do it parallely
+	if(threads > 1){
+		#pragma omp parallel sections
+		{
+			#pragma omp section
+			{
+				left = mergeSort(left, threads / 2);
+			}
+			#pragma omp section
+			{
+				right = mergeSort(right, threads - threads / 2);
+			}
+		}
+	}else {
+		left = mergeSort(left, 1);
+		right = mergeSort(right, 1);
+	}
+	
+	return merge(left, right);
+}
+
+void printVector(vector<long> & vec){
+	for(long i = 0; i < vec.size(); i++){
+		cout << vec[i] << " ";
+	}
+}
+
+int main(){
+	long n;
+	int numThreads = 2;
+	cin >> n;
+	vector<long> v (n);
+	
+	for(long i = 0; i < n; i++){
+		cin >> v[i];
+	}
+	
+	
+	double time = omp_get_wtime();
+	v = mergeSort(v, numThreads);
+	time = omp_get_wtime() - time;
+	
+	cout << "Time taken (parallel) :: " << time << endl;
+	printVector(v);
+
+	return 0;
 }

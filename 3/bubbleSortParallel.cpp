@@ -1,7 +1,6 @@
 #include <bits/stdc++.h>
 #include <omp.h>
 using namespace std;
-int num_threads = 10;
 
 void bubbleSort(int arr[], int n){
     if(n == 1)
@@ -43,11 +42,11 @@ int main()
         scanf("%d", &arr[i]);
     }
 
-	clock_t start = clock();
+	double time = omp_get_wtime();
     bubbleSort(arr, arr_size);
-  	clock_t end = clock();
+  	time = omp_get_wtime() - time;
 
     printArray(arr, arr_size);
-    printf("\nTime taken (parallel) :: %lf s \n", (double) (end - start) / CLOCKS_PER_SEC);
+    printf("\nTime taken (parallel) :: %lf s \n", time);
     return 0;
 }

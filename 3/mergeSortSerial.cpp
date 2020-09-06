@@ -1,72 +1,77 @@
 #include <bits/stdc++.h>
 #include <time.h>
- 
-void merge(int a[],int i1,int j1,int i2,int j2)
-{
-    int temp[10000];   
-    int i,j,k;
-    i=i1;    
-    j=i2;    
-    k=0;
-    
-    while(i<=j1 && j<=j2)   
-    {
-        if(a[i]<a[j])
-            temp[k++]=a[i++];
-        else
-            temp[k++]=a[j++];
-    }
-    
-    while(i<=j1)    
-        temp[k++]=a[i++];
-        
-    while(j<=j2)  
-        temp[k++]=a[j++];
-        
-    for(i=i1,j=0;i<=j2;i++,j++)
-        a[i]=temp[j];
+#include <omp.h>
+
+using namespace std;
+
+// merge the two halves
+vector<long> merge(vector<long> & left, vector<long> & right){
+	vector<long> result;
+	unsigned left_it = 0, right_it = 0;
+	
+	while(left_it < left.size() && right_it < right.size()){
+		if(left[left_it] < right[right_it]){
+			result.push_back(left[left_it]);
+			left_it++;
+		}
+		else{
+			result.push_back(right[right_it]);
+			right_it++;
+		}
+	}
+	
+	while(left_it < left.size()){
+		result.push_back(left[left_it]);
+		left_it++;
+	}
+	
+	while(right_it < right.size()){
+		result.push_back(right[right_it]);
+		right_it++;
+	}
+	
+	return result;
 }
 
+// recursive merge sort
+vector<long> mergeSort(vector<long> & vec){
+	if(vec.size() == 1){
+		return vec;
+	}
 
-void mergesortSerial(int a[],int i,int j)
-{
-    int mid;
-        
-    if(i<j)
-    {
-        mid=(i+j)/2;
-        mergesortSerial(a,i,mid); 
-		mergesortSerial(a,mid+1,j);
-
-        merge(a,i,mid,mid+1,j);
-    }
+	// device the vector in left and right
+	vector<long>::iterator middle = vec.begin() + (vec.size() / 2);
+	vector<long> left (vec.begin(), middle);
+	vector<long> right (middle, vec.end());
+	
+	left = mergeSort(left);
+	right = mergeSort(right);
+	
+	return merge(left, right);
 }
 
-void printArray(int A[], int size) 
-{ 
-    int i; 
-    for (i = 0; i < size; i++) 
-        printf("%d \n", A[i]); 
-} 
+void printVector(vector<long> & vec){
+	for(long i = 0; i < vec.size(); i++){
+		cout << vec[i] << " ";
+	}
+}
 
-int main()
-{
-    int arr_size;
-
-    scanf("%d", &arr_size);
-    int arr[arr_size];
-
-    for(int i = 0; i < arr_size; i++){
-        scanf("%d", &arr[i]);
-    }
-
-	/************* SERIAL OPERATION *************/
+int main(){
+	long n;
+	cin >> n;
+	vector<long> v (n);
+	
+	for(long i = 0; i < n; i++){
+		cin >> v[i];
+	}
+	
 	
 	clock_t start = clock();
-    mergesortSerial(arr, 0, arr_size - 1);
-   	clock_t end = clock();
-	printf("Time taken (serial) :: %lf s\n", (double) (end - start) / 		CLOCKS_PER_SEC);
+	v = mergeSort(v);
+	double time = (double) (clock() - start) / CLOCKS_PER_SEC;
+	
+	cout << "Time taken (serial) :: " << time << endl;
+	printVector(v);
 
-    printArray(arr, arr_size);
-    return 0;
+	return 0;
 }
