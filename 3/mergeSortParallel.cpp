@@ -73,20 +73,19 @@ void printVector(vector<long> & vec){
 
 int main(){
 	long n;
-	int numThreads = 2;
+	int numThreads = 4;
 	cin >> n;
 	vector<long> v (n);
-	
+
 	for(long i = 0; i < n; i++){
 		cin >> v[i];
 	}
-	
 	
 	double time = omp_get_wtime();
 	v = mergeSort(v, numThreads);
 	time = omp_get_wtime() - time;
 	
-	cout << "Time taken (parallel) :: " << time << endl;
+	cout << "Time taken (parallel) :: " << time << " s" << endl;
 	printVector(v);
 
 	return 0;

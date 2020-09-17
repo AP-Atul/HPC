@@ -1,17 +1,18 @@
 %%cu
 #include <bits/stdc++.h>
 #include <cuda.h>
-#define row1 200
-#define col1 300
-#define row2 300
-#define col2 200
-#define RANGE 1000
+#define row1 5
+#define col1 4
+#define row2 4
+#define col2 5
+#define RANGE 10
+using namespace std;
 
-__global__ void matrixMulSharedMemory(int * deviceA, int * deviceB, int * deviceC)
+__global__ void matrixMulSharedMemory(long * deviceA, long * deviceB, long * deviceC)
 {
     int x = blockIdx.x;
     int y = blockIdx.y;
-    __shared__ int answer[col1];
+    __shared__ long answer[col1];
     int tid = threadIdx.x;
 
     deviceC[col2 * y + x] = 0;
@@ -19,24 +20,36 @@ __global__ void matrixMulSharedMemory(int * deviceA, int * deviceB, int * device
 
     __syncthreads();
 
-    for(int i = 0;i < col1; i++) deviceC[col2 * y + x] += answer[i];
+    for(int i = 0; i < col1; i++) deviceC[col2 * y + x] += answer[i];
+}
+
+void printMatrix(long a[row1][col2]){
+  for(int i = 0;  i < row1; i++){
+    for(int j = 0 ; j < col2; j++)
+      cout << a[i][j] << " ";
+    cout << endl;
+  }
 }
 
 //# host multiplication
-void mulCPU(int hostA[row1][col1], int hostB[row2][col2], int actual[row1][col2]){
+void mulCPU(long hostA[row1][col1], long hostB[row2][col2], long actual[row1][col2]){
     for(int i = 0; i < row1; ++i) 
-      for(int j = 0; j < col2; ++j) 
-        for(int k = 0; k < col1; ++k) 
+      for(int j = 0; j < col2; ++j) {
+        actual[i][j] = 0;
+        for(int k = 0; k < col1; ++k)
           actual[i][j] += hostA[i][k] * hostB[k][j];
+      }
 }
+
 
 int main()
 {
-  int a[row1][col1];
-  int b[row2][col2];
-  int c[row1][col2];
+  long a[row1][col1];
+  long b[row2][col2];
+  long c[row1][col2];
+  bool print = 1;
 
-  int * deviceA, * deviceB, * deviceC;
+  long * deviceA, * deviceB, * deviceC;
 
   for(int i = 0; i < row1; i++)
   {
@@ -48,23 +61,23 @@ int main()
   }
 
   //# ************* GPU MUL *******************// 
-  cudaMalloc((void **)&deviceA, row1 * col1 * sizeof(int));
-  cudaMalloc((void **)&deviceB, row2 * col2 * sizeof(int));
-  cudaMalloc((void **)&deviceC, row1 * col2 * sizeof(int));
+  cudaMalloc((void **)&deviceA, row1 * col1 * sizeof(long));
+  cudaMalloc((void **)&deviceB, row2 * col2 * sizeof(long));
+  cudaMalloc((void **)&deviceC, row1 * col2 * sizeof(long));
 
-  cudaMemcpy(deviceA, a, row1 * col1 * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(deviceB, b, row2 * col2 * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(deviceA, a, row1 * col1 * sizeof(long), cudaMemcpyHostToDevice);
+  cudaMemcpy(deviceB, b, row2 * col2 * sizeof(long), cudaMemcpyHostToDevice);
 
   dim3 grid(col2,row1);
   clock_t start = clock();
   matrixMulSharedMemory<<<grid,col1>>>(deviceA, deviceB, deviceC);
   double time = clock() - start;
 
-  cudaMemcpy(c, deviceC, row1 * col2 * sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(c, deviceC, row1 * col2 * sizeof(long), cudaMemcpyDeviceToHost);
   printf("Time taken (parallel) :: %lf", time / CLOCKS_PER_SEC);
 
   //# ***************** CPU MUL ****************//
-  int actual[row1][col2];
+  long actual[row1][col2];
   
   start = clock();
   mulCPU(a, b, actual);
@@ -72,6 +85,14 @@ int main()
 
   printf("\nTime taken (serial) :: %lf", time / CLOCKS_PER_SEC);
 
+  if(print){
+    printf("\n\nCPU matrix :: \n");
+    printMatrix(actual);
+  
+    printf("\n\nGPU matrix :: \n");
+    printMatrix(c);
+  }
+ 
   cudaFree(deviceA);
   cudaFree(deviceB);
   cudaFree(deviceC);

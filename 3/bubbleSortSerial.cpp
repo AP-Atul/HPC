@@ -1,38 +1,32 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-void swap(int *a, int *b){
-    int t = *a;
-    *a = *b;
-    *b = t;
-}
-
-void bubbleSort(int arr[], int n){
+void bubbleSort(vector<int> &arr, long n){
     if(n == 1)
         return;
 
-    for(int i = 0; i < n - 1; i++)
+    for(long i = 0; i < n - 1; i++)
         if(arr[i] > arr[i + 1])
-            swap(&arr[i], &arr[i+ 1]);
+            swap(arr[i], arr[i+ 1]);
 
     bubbleSort(arr, n - 1);
 }
 
-void printArray(int arr[], int n) 
+void printArray(vector<int> arr, long n) 
 { 
-    for (int i=0; i < n; i++) 
+    for (long i=0; i < n; i++) 
         printf("%d ", arr[i]); 
     printf("\n"); 
-} 
+}
 
 int main()
 {
-    int arr_size;
+    long arr_size;
 
-    scanf("%d", &arr_size);
-    int arr[arr_size];
+    scanf("%ld", &arr_size);
+    vector<int> arr (arr_size);
 
-    for(int i = 0; i < arr_size; i++){
+    for(long i = 0; i < arr_size; i++){
         scanf("%d", &arr[i]);
     }
     

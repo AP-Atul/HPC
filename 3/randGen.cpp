@@ -2,7 +2,7 @@
 using namespace std;
 
 int main(){
-	long N = 10000000;
+	long N = 10000;
 	int RANG = 1000;
 	
 	printf("%ld\n", N);

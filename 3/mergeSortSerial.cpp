@@ -39,7 +39,6 @@ vector<long> mergeSort(vector<long> & vec){
 		return vec;
 	}
 
-	// device the vector in left and right
 	vector<long>::iterator middle = vec.begin() + (vec.size() / 2);
 	vector<long> left (vec.begin(), middle);
 	vector<long> right (middle, vec.end());
@@ -70,7 +69,7 @@ int main(){
 	v = mergeSort(v);
 	double time = (double) (clock() - start) / CLOCKS_PER_SEC;
 	
-	cout << "Time taken (serial) :: " << time << endl;
+	cout << "Time taken (serial) :: " << time << " s" << endl;
 	printVector(v);
 
 	return 0;
