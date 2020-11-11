@@ -15,4 +15,5 @@ Two source files:
  
 ## 3. Assignment 3: Mergesort and bubble sort in OpenMP
 
- * a. parallelized, but execution time is not good enough.
+ * a. parallelized, bubble, mergesort, oddeven sorts. 
+ * b. execution of parallel are slightly faster than serila ones.
